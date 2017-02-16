@@ -3,12 +3,10 @@ const keys = [
   'email',
   'created',
   'balance',
-  'avatar',
-  'address',
-  'city',
-  'country',
-  'street',
-  'zip'
+  'address.city',
+  'address.country',
+  'address.street',
+  'address.zip'
 ]
 
 const apiUri = 'https://appthis-code-challenge-api.herokuapp.com/people'

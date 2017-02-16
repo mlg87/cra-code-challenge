@@ -1,12 +1,14 @@
 import React, { Component } from 'react'
 import axios from 'axios'
+import fetch from 'isomorphic-fetch'
 import config from '../config'
 import Measure from 'react-measure'
 import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import getMuiTheme from 'material-ui/styles/getMuiTheme'
 import AppBar from 'material-ui/AppBar'
-import FlatButton from 'material-ui/FlatButton'
+// import FlatButton from 'material-ui/FlatButton'
+import RaisedButton from 'material-ui/RaisedButton'
 import SelectField from 'material-ui/SelectField'
 import MenuItem from 'material-ui/MenuItem'
 import Toggle from 'material-ui/Toggle'
@@ -32,9 +34,17 @@ export default class extends Component {
   }
 
   async getRequest() {
-    console.log('params', this.state.params);
-    const res = await axios.get(config.apiUri, this.state.params)
-    console.log('res.data', res.data);
+    const { params } = this.state
+    // far from the most elegant solution, but i go tired of axios not working
+    // as docs said it would
+    const query = new URLSearchParams()
+    query.append('orderBy.key', params.orderBy.key)
+    query.append('orderBy.dir', params.orderBy.dir)
+    query.append('page.current', params.page.current)
+    query.append('page.limit', params.page.limit)
+
+    const res = await axios.get(`${config.apiUri}?${query}`)
+
     const { records } = res.data
     this.setState({ records })
   }
@@ -63,12 +73,26 @@ export default class extends Component {
     this.setState({params: {...this.state.params, page}})
   }
 
+  renderOrderByOptions() {
+    const options = [
+      <MenuItem key='nullable' value={ null } primaryText='' />
+    ]
+
+    config.keys.forEach(key => {
+      return options.push(
+        <MenuItem key={ key } value={ key } primaryText={ key.search(/address/) !== -1 ? key.substring(8, key.length).toUpperCase() : key.toUpperCase() } />
+      )
+    })
+
+    return options
+  }
+
   renderPageOptions() {
     const options = []
     let i = 1
     while (i <= 200) {
       options.push(
-        <MenuItem value={ i } primaryText={`Page ${i}`} />
+        <MenuItem key={ i } value={ i } primaryText={`Page ${i}`} />
       )
       i++
     }
@@ -76,7 +100,7 @@ export default class extends Component {
   }
 
   render() {
-    console.log('our state', this.state);
+    // console.log('our state', this.state);
     const { records } = this.state
 
     const style_container = {
@@ -85,7 +109,14 @@ export default class extends Component {
       }
 
     const style_filtersContainer = {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       padding: '20px'
+    }
+
+    const style_filter = {
+      flexGrow: '1'
     }
 
     return (
@@ -99,27 +130,24 @@ export default class extends Component {
           </Measure>
           <div style={ style_container }>
             <div style={ style_filtersContainer }>
-              <FlatButton
-                label='Request'
-                onClick={ this.getRequest.bind(this) }
-                />
-              <SelectField
-                floatingLabelText='ORDER BY'
-                value={ this.state.params.orderBy.key }
-                onChange={ this.handleOrderByChange.bind(this) }
-                >
-                <MenuItem value={ null } primaryText='' />
-                <MenuItem value='name' primaryText='NAME' />
-                <MenuItem value='email' primaryText='EMAIL' />
-                <MenuItem value='created' primaryText='CREATED' />
-              </SelectField>
-              <Toggle
-                label='SORT ASCENDING'
-                labelPosition='right'
-                defaultToggled={ true }
-                onToggle={ this.handleOrderBySortChange.bind(this) }
-                />
-              <div>
+              <div style={ style_filter}>
+                <SelectField
+                  floatingLabelText='ORDER BY'
+                  value={ this.state.params.orderBy.key }
+                  onChange={ this.handleOrderByChange.bind(this) }
+                  >
+                  { this.renderOrderByOptions() }
+                </SelectField>
+              </div>
+              <div style={ style_filter }>
+                <Toggle
+                  label='SORT ASCENDING'
+                  labelPosition='right'
+                  defaultToggled={ true }
+                  onToggle={ this.handleOrderBySortChange.bind(this) }
+                  />
+              </div>
+              <div style={ style_filter }>
                 <SelectField
                   value={ this.state.params.page.current }
                   onChange={ this.handlePageCurrentChange.bind(this) }
@@ -128,8 +156,8 @@ export default class extends Component {
                   { this.renderPageOptions() }
                 </SelectField>
               </div>
-              <div>
-                <label>RECORD LIMIT</label>
+              <div style={ style_filter }>
+                <label style={{color: 'white'}}>{`RECORD LIMIT: ${this.state.params.page.limit}`}</label>
                 <Slider
                   min={ 1 }
                   max={ 200 }
@@ -140,6 +168,12 @@ export default class extends Component {
                   />
               </div>
             </div>
+            <RaisedButton
+              label='Make Request'
+              onClick={ this.getRequest.bind(this) }
+              secondary={ true }
+              fullWidth={ true }
+              />
             <Table rows={ records } />
           </div>
         </div>
