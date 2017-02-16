@@ -5,6 +5,7 @@ import moment from 'moment'
 export default (props) => {
   const { rows } = props
 
+  // 'outside' of renderRows b/c also used in func return
   const style_avatarCol = {
     width: '30px'
   }
@@ -18,11 +19,11 @@ export default (props) => {
     return rows.map(row => {
       return (
         <TableRow key={ row.created }>
-          <TableRowColumn style={ style_avatarCol }><img style={ style_avatar } src={ row.avatar } /></TableRowColumn>
+          <TableRowColumn style={ style_avatarCol }><img style={ style_avatar } src={ row.avatar } alt='Avatar' /></TableRowColumn>
           <TableRowColumn>{ row.name }</TableRowColumn>
           <TableRowColumn>{ row.email }</TableRowColumn>
           <TableRowColumn>{ moment(row.created).format('MM/DD/YYYY') }</TableRowColumn>
-          <TableRowColumn>{ row.balance }</TableRowColumn>
+          <TableRowColumn>{`$${row.balance.toFixed(2)}`}</TableRowColumn>
           <TableRowColumn>{ row.address.street }</TableRowColumn>
           <TableRowColumn>{ row.address.city }</TableRowColumn>
           <TableRowColumn>{ row.address.country }</TableRowColumn>

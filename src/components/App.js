@@ -1,10 +1,15 @@
 import React, { Component } from 'react'
+// http
 import axios from 'axios'
+// keys and uri
 import config from '../config'
+// used for setting height on 'body'
 import Measure from 'react-measure'
+// material-ui theme things
 import darkBaseTheme from 'material-ui/styles/baseThemes/darkBaseTheme'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import getMuiTheme from 'material-ui/styles/getMuiTheme'
+// components
 import AppBar from 'material-ui/AppBar'
 import RaisedButton from 'material-ui/RaisedButton'
 import SelectField from 'material-ui/SelectField'
@@ -32,15 +37,15 @@ export default class extends Component {
   }
 
   async getRequest() {
-    const { params } = this.state
-    // far from the most elegant solution, but i go tired of axios not working
-    // as docs said it would
-    const query = new URLSearchParams()
-    query.append('orderBy.key', params.orderBy.key)
-    query.append('orderBy.dir', params.orderBy.dir)
-    query.append('page.current', params.page.current)
-    query.append('page.limit', params.page.limit)
+    const { orderBy, page } = this.state.params
 
+    const query = new URLSearchParams()
+    query.append('orderBy.key', orderBy.key)
+    query.append('orderBy.dir', orderBy.dir)
+    query.append('page.current', page.current)
+    query.append('page.limit', page.limit)
+
+    // template literal === query.toString
     const res = await axios.get(`${config.apiUri}?${query}`)
 
     const { records } = res.data
@@ -98,7 +103,6 @@ export default class extends Component {
   }
 
   render() {
-    // console.log('our state', this.state);
     const { records } = this.state
 
     const style_container = {
@@ -139,7 +143,7 @@ export default class extends Component {
               </div>
               <div style={ style_filter }>
                 <Toggle
-                  label='SORT ASCENDING'
+                  label={`SORT ${this.state.params.orderBy.dir.toUpperCase()}`}
                   labelPosition='right'
                   defaultToggled={ true }
                   onToggle={ this.handleOrderBySortChange.bind(this) }
